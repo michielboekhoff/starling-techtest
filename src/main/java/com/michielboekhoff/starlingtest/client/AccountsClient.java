@@ -40,6 +40,7 @@ public class AccountsClient {
             return deserializeAccountsFromJson(response.body());
         } catch (JsonProcessingException e) {
         } catch (IOException e) {
+            throw new ApiException("Could not get accounts data from Accounts API", e);
         }
 
         return null;
