@@ -4,10 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.michielboekhoff.starlingtest.domain.Account;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -34,56 +31,60 @@ class ApiClientTest {
         wireMock.stop();
     }
 
-    @Test
-    @DisplayName("getAllAccounts should get all accounts from the API")
-    void getAllAccountsGetsAllAccounts() {
-        stubFor(
-                get("/api/v2/accounts")
-                        .withHeader("Authorization", equalTo("Bearer token"))
-                        .willReturn(
-                                aResponse()
-                                        .withStatus(200)
-                                        .withBodyFile("accounts.json")
-                        )
-        );
+    @Nested
+    @DisplayName("getAllAccounts")
+    class GetAllAccountsTests {
+        @Test
+        @DisplayName("it should get all accounts from the API")
+        void getsAllAccounts() {
+            stubFor(
+                    get("/api/v2/accounts")
+                            .withHeader("Authorization", equalTo("Bearer token"))
+                            .willReturn(
+                                    aResponse()
+                                            .withStatus(200)
+                                            .withBodyFile("accounts.json")
+                            )
+            );
 
-        List<Account> accounts = apiClient.getAllAccounts();
+            List<Account> accounts = apiClient.getAllAccounts();
 
-        assertThat(accounts)
-                .hasOnlyOneElementSatisfying(account -> assertThat(account.getAccountUid()).isEqualTo("bbccbbcc-bbcc-bbcc-bbcc-bbccbbccbbcc"));
-        assertThat(accounts)
-                .hasOnlyOneElementSatisfying(account -> assertThat(account.getDefaultCategory()).isEqualTo("ccddccdd-ccdd-ccdd-ccdd-ccddccddccdd"));
-    }
+            assertThat(accounts)
+                    .hasOnlyOneElementSatisfying(account -> assertThat(account.getAccountUid()).isEqualTo("bbccbbcc-bbcc-bbcc-bbcc-bbccbbccbbcc"));
+            assertThat(accounts)
+                    .hasOnlyOneElementSatisfying(account -> assertThat(account.getDefaultCategory()).isEqualTo("ccddccdd-ccdd-ccdd-ccdd-ccddccddccdd"));
+        }
 
-    @Test
-    @DisplayName("getAllAccounts should throw an IllegalStateException if the baseUrl cannot be parsed")
-    void getAllAccountsInvalidBaseUrl() {
-        ApiClient apiClient = new ApiClient("foo", ACCESS_TOKEN);
+        @Test
+        @DisplayName("it should throw an IllegalStateException if the baseUrl cannot be parsed")
+        void invalidBaseUrl() {
+            ApiClient apiClient = new ApiClient("foo", ACCESS_TOKEN);
 
-        assertThatThrownBy(apiClient::getAllAccounts)
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Base URL could not be parsed");
-    }
+            assertThatThrownBy(apiClient::getAllAccounts)
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessage("Base URL could not be parsed");
+        }
 
-    @Test
-    @DisplayName("getAllAccounts should throw an ApiException when a connection cannot be established")
-    void getAllAccountsCannotConnect() {
-        stubFor(get("/api/v2/accounts").willReturn(aResponse().withFault(Fault.RANDOM_DATA_THEN_CLOSE)));
+        @Test
+        @DisplayName("it should throw an ApiException when a connection cannot be established")
+        void cannotConnect() {
+            stubFor(get("/api/v2/accounts").willReturn(aResponse().withFault(Fault.RANDOM_DATA_THEN_CLOSE)));
 
-        assertThatThrownBy(apiClient::getAllAccounts)
-                .isInstanceOf(ApiException.class)
-                .hasMessage("Could not get accounts data from Accounts API")
-                .hasCauseInstanceOf(IOException.class);
-    }
+            assertThatThrownBy(apiClient::getAllAccounts)
+                    .isInstanceOf(ApiException.class)
+                    .hasMessage("Could not get accounts data from Accounts API")
+                    .hasCauseInstanceOf(IOException.class);
+        }
 
-    @Test
-    @DisplayName("getAllAccounts should throw an ApiException when the received JSON is invalid")
-    void getAllAccountsInvalidJson() {
-        stubFor(get("/api/v2/accounts").willReturn(aResponse().withStatus(200).withBody("not json")));
+        @Test
+        @DisplayName("it should throw an ApiException when the received JSON is invalid")
+        void invalidJson() {
+            stubFor(get("/api/v2/accounts").willReturn(aResponse().withStatus(200).withBody("not json")));
 
-        assertThatThrownBy(apiClient::getAllAccounts)
-                .isInstanceOf(ApiException.class)
-                .hasMessage("Could not get accounts data from Accounts API")
-                .hasCauseInstanceOf(JsonProcessingException.class);
+            assertThatThrownBy(apiClient::getAllAccounts)
+                    .isInstanceOf(ApiException.class)
+                    .hasMessage("Could not get accounts data from Accounts API")
+                    .hasCauseInstanceOf(JsonProcessingException.class);
+        }
     }
 }
