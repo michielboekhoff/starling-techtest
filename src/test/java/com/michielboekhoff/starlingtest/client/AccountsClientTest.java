@@ -1,5 +1,6 @@
 package com.michielboekhoff.starlingtest.client;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.michielboekhoff.starlingtest.domain.Account;
@@ -73,5 +74,16 @@ class AccountsClientTest {
                 .isInstanceOf(ApiException.class)
                 .hasMessage("Could not get accounts data from Accounts API")
                 .hasCauseInstanceOf(IOException.class);
+    }
+
+    @Test
+    @DisplayName("getAllAccounts should throw an ApiException when the received JSON is invalid")
+    void getAllAccountsInvalidJson() {
+        stubFor(get("/api/v2/accounts").willReturn(aResponse().withStatus(200).withBody("not json")));
+
+        assertThatThrownBy(accountsClient::getAllAccounts)
+                .isInstanceOf(ApiException.class)
+                .hasMessage("Could not get accounts data from Accounts API")
+                .hasCauseInstanceOf(JsonProcessingException.class);
     }
 }

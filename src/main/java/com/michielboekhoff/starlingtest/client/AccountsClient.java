@@ -1,7 +1,6 @@
 package com.michielboekhoff.starlingtest.client;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.michielboekhoff.starlingtest.domain.Account;
@@ -38,12 +37,9 @@ public class AccountsClient {
             // the `response.body()` carries a warning that this could be null
             // but according to the documentation, this is never the case for `Call.execute`.
             return deserializeAccountsFromJson(response.body());
-        } catch (JsonProcessingException e) {
         } catch (IOException e) {
             throw new ApiException("Could not get accounts data from Accounts API", e);
         }
-
-        return null;
     }
 
     private List<Account> deserializeAccountsFromJson(ResponseBody responseBody) throws IOException {
