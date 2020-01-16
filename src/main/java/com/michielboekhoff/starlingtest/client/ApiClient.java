@@ -1,6 +1,5 @@
 package com.michielboekhoff.starlingtest.client;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.michielboekhoff.starlingtest.domain.Account;
@@ -27,7 +26,7 @@ public class ApiClient {
     }
 
     public List<Account> getAllAccounts() {
-        HttpUrl httpUrl = getAccountsUrl();
+        HttpUrl httpUrl = getRelativePathToBaseUrl(ACCOUNTS_API_PATH);
         Request request = new Request.Builder()
                 .url(httpUrl)
                 .header("Authorization", "Bearer " + accessToken)
@@ -36,32 +35,16 @@ public class ApiClient {
         try (Response response = HTTP_CLIENT.newCall(request).execute()) {
             // the `response.body()` carries a warning that this could be null
             // but according to the documentation, this is never the case for `Call.execute`.
-            return deserializeAccountsFromJson(response.body());
+            AccountsWrapper accountsWrapper = objectMapper.readValue(response.body().string(), AccountsWrapper.class);
+            return accountsWrapper.getAccounts();
         } catch (IOException e) {
             throw new ApiException("Could not get accounts data from Accounts API", e);
         }
     }
 
-    private List<Account> deserializeAccountsFromJson(ResponseBody responseBody) throws IOException {
-        AccountsWrapper accountsWrapper = objectMapper.readValue(responseBody.string(), AccountsWrapper.class);
-        return accountsWrapper.getAccounts();
-    }
-
-    private HttpUrl getAccountsUrl() {
+    private HttpUrl getRelativePathToBaseUrl(String path) {
         return Optional.ofNullable(HttpUrl.parse(baseUrl))
-                .map(url -> url.resolve(ACCOUNTS_API_PATH))
+                .map(url -> url.resolve(path))
                 .orElseThrow(() -> new IllegalStateException("Base URL could not be parsed"));
-    }
-
-    private static class AccountsWrapper {
-        private final List<Account> accounts;
-
-        public AccountsWrapper(@JsonProperty(value = "accounts", required = true) List<Account> accounts) {
-            this.accounts = accounts;
-        }
-
-        public List<Account> getAccounts() {
-            return accounts;
-        }
     }
 }
