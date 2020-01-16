@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
-public class AccountsClient {
+public class ApiClient {
 
     private static final ObjectMapper objectMapper = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -21,7 +21,7 @@ public class AccountsClient {
     private final String baseUrl;
     private final String accessToken;
 
-    public AccountsClient(String baseUrl, String accessToken) {
+    public ApiClient(String baseUrl, String accessToken) {
         this.baseUrl = baseUrl;
         this.accessToken = accessToken;
     }

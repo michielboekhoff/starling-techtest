@@ -17,12 +17,12 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class AccountsClientTest {
+class ApiClientTest {
 
     private static final WireMockServer wireMock = new WireMockServer(options());
     private static final String ACCESS_TOKEN = "token";
 
-    private final AccountsClient accountsClient = new AccountsClient(wireMock.baseUrl(), ACCESS_TOKEN);
+    private final ApiClient apiClient = new ApiClient(wireMock.baseUrl(), ACCESS_TOKEN);
 
     @BeforeAll
     public static void setUp() {
@@ -47,7 +47,7 @@ class AccountsClientTest {
                         )
         );
 
-        List<Account> accounts = accountsClient.getAllAccounts();
+        List<Account> accounts = apiClient.getAllAccounts();
 
         assertThat(accounts)
                 .hasOnlyOneElementSatisfying(account -> assertThat(account.getAccountUid()).isEqualTo("bbccbbcc-bbcc-bbcc-bbcc-bbccbbccbbcc"));
@@ -58,9 +58,9 @@ class AccountsClientTest {
     @Test
     @DisplayName("getAllAccounts should throw an IllegalStateException if the baseUrl cannot be parsed")
     void getAllAccountsInvalidBaseUrl() {
-        AccountsClient accountsClient = new AccountsClient("foo", ACCESS_TOKEN);
+        ApiClient apiClient = new ApiClient("foo", ACCESS_TOKEN);
 
-        assertThatThrownBy(accountsClient::getAllAccounts)
+        assertThatThrownBy(apiClient::getAllAccounts)
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Base URL could not be parsed");
     }
@@ -70,7 +70,7 @@ class AccountsClientTest {
     void getAllAccountsCannotConnect() {
         stubFor(get("/api/v2/accounts").willReturn(aResponse().withFault(Fault.RANDOM_DATA_THEN_CLOSE)));
 
-        assertThatThrownBy(accountsClient::getAllAccounts)
+        assertThatThrownBy(apiClient::getAllAccounts)
                 .isInstanceOf(ApiException.class)
                 .hasMessage("Could not get accounts data from Accounts API")
                 .hasCauseInstanceOf(IOException.class);
@@ -81,7 +81,7 @@ class AccountsClientTest {
     void getAllAccountsInvalidJson() {
         stubFor(get("/api/v2/accounts").willReturn(aResponse().withStatus(200).withBody("not json")));
 
-        assertThatThrownBy(accountsClient::getAllAccounts)
+        assertThatThrownBy(apiClient::getAllAccounts)
                 .isInstanceOf(ApiException.class)
                 .hasMessage("Could not get accounts data from Accounts API")
                 .hasCauseInstanceOf(JsonProcessingException.class);
