@@ -92,10 +92,20 @@ class ApiClientTest {
                     .hasMessage("Could not get accounts data from Accounts API")
                     .hasCauseInstanceOf(JsonProcessingException.class);
         }
+
+        @Test
+        @DisplayName("it should throw an ApiException when the HTTP status code is not successful")
+        void nonSuccessfulStatusCode() {
+            stubFor(get("/api/v2/accounts").willReturn(aResponse().withStatus(404)));
+
+            assertThatThrownBy(apiClient::getAllAccounts)
+                    .isInstanceOf(ApiException.class)
+                    .hasMessageMatching("Status code 404 returned by http://.*/api/v2/accounts");
+        }
     }
 
     @Nested
-    @DisplayName("getAllTransactionsForLastWeekForAccountAndDefaultCategory")
+    @DisplayName("getAllTransactionsForAccountAndDefaultCategoryInInterval")
     class GetAllDebitTransactionsTests {
 
         private final Account account = new Account("accountUid", "defaultCategory");
@@ -171,6 +181,17 @@ class ApiClientTest {
                     .isInstanceOf(ApiException.class)
                     .hasMessage("Could not get accounts data from Transaction Feed API")
                     .hasCauseInstanceOf(JsonProcessingException.class);
+        }
+
+        @Test
+        @DisplayName("it should throw an ApiException when the HTTP status code is not successful")
+        void nonSuccessfulStatusCode() {
+            stubFor(get("/api/v2/feed/account/accountUid/category/defaultCategory")
+                    .willReturn(aResponse().withStatus(404)));
+
+            assertThatThrownBy(() -> apiClient.getAllTransactionsForAccountAndDefaultCategoryInInterval(account, interval))
+                    .isInstanceOf(ApiException.class)
+                    .hasMessageMatching("Status code 404 returned by http://.*/api/v2/feed/account/accountUid/category/defaultCategory.*");
         }
     }
 }

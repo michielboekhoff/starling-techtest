@@ -39,8 +39,7 @@ public class ApiClient {
                 .build();
 
         try {
-            HttpResponse<String> response = HTTP_CLIENT.send(request, BodyHandlers.ofString());
-            AccountsWrapper accountsWrapper = objectMapper.readValue(response.body(), AccountsWrapper.class);
+            AccountsWrapper accountsWrapper = executeRequest(request, AccountsWrapper.class);
             return accountsWrapper.getAccounts();
         } catch (IOException | InterruptedException e) {
             throw new ApiException("Could not get accounts data from Accounts API", e);
@@ -56,12 +55,25 @@ public class ApiClient {
                 .build();
 
         try {
-            HttpResponse<String> response = HTTP_CLIENT.send(request, BodyHandlers.ofString());
-            FeedsWrapper feedsWrapper = objectMapper.readValue(response.body(), FeedsWrapper.class);
+            FeedsWrapper feedsWrapper = executeRequest(request, FeedsWrapper.class);
             return feedsWrapper.getTransactions();
         } catch (InterruptedException | IOException e) {
             throw new ApiException("Could not get accounts data from Transaction Feed API", e);
         }
+    }
+
+    private <T> T executeRequest(HttpRequest request, Class<T> klass) throws IOException, InterruptedException {
+        HttpResponse<String> response = HTTP_CLIENT.send(request, BodyHandlers.ofString());
+
+        if (isNotSuccessful(response)) {
+            throw new ApiException(String.format("Status code %d returned by %s", response.statusCode(), response.uri().toString()));
+        }
+
+        return objectMapper.readValue(response.body(), klass);
+    }
+
+    private boolean isNotSuccessful(HttpResponse<String> response) {
+        return response.statusCode() < 200 || response.statusCode() > 299;
     }
 
     private URI getFeedUrlForAccountAndInterval(Account account, Interval interval) {
