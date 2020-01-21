@@ -10,6 +10,9 @@ import org.junit.jupiter.api.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -96,6 +99,9 @@ class ApiClientTest {
     class GetAllDebitTransactionsTests {
 
         private final Account account = new Account("accountUid", "defaultCategory");
+        private final Clock clock = Clock.fixed(Instant.parse("2020-01-21T10:15:30Z"), ZoneId.of("Z"));
+        private final Interval interval = Interval.lastWeek(clock);
+
         public final List<Transaction> allTransactions = List.of(
                 new Transaction(new BigDecimal("600.00"), TransactionDirection.IN),
                 new Transaction(new BigDecimal("37.65"), TransactionDirection.OUT),
@@ -108,6 +114,8 @@ class ApiClientTest {
             stubFor(
                     get(urlPathEqualTo("/api/v2/feed/account/accountUid/category/defaultCategory/transactions-between"))
                             .withHeader("Authorization", equalTo("Bearer token"))
+                            .withQueryParam("minTransactionTimestamp", equalTo("2020-01-14T10:15:30Z"))
+                            .withQueryParam("maxTransactionTimestamp", equalTo("2020-01-21T10:15:30Z"))
                             .willReturn(
                                     aResponse()
                                             .withStatus(200)
@@ -115,7 +123,7 @@ class ApiClientTest {
                             )
             );
 
-            List<Transaction> transactions = apiClient.getAllTransactionsForLastWeekForAccountAndDefaultCategory(account);
+            List<Transaction> transactions = apiClient.getAllTransactionsForAccountAndDefaultCategoryInInterval(account, interval);
 
             // Transaction does not provide an equals method, and I am not a fan of writing production code for tests.
             // AssertJ provides a method usingRecursiveFieldByFieldElementComparator that allows for to comparing
@@ -130,7 +138,7 @@ class ApiClientTest {
         void invalidBaseUrl() {
             ApiClient apiClient = new ApiClient("foo", ACCESS_TOKEN);
 
-            assertThatThrownBy(() -> apiClient.getAllTransactionsForLastWeekForAccountAndDefaultCategory(account))
+            assertThatThrownBy(() -> apiClient.getAllTransactionsForAccountAndDefaultCategoryInInterval(account, interval))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("URI with undefined scheme");
         }
@@ -145,7 +153,7 @@ class ApiClientTest {
                             )
             );
 
-            assertThatThrownBy(() -> apiClient.getAllTransactionsForLastWeekForAccountAndDefaultCategory(account))
+            assertThatThrownBy(() -> apiClient.getAllTransactionsForAccountAndDefaultCategoryInInterval(account, interval))
                     .isInstanceOf(ApiException.class)
                     .hasMessage("Could not get accounts data from Transaction Feed API")
                     .hasCauseInstanceOf(IOException.class);
@@ -159,7 +167,7 @@ class ApiClientTest {
                             .willReturn(aResponse().withStatus(200).withBody("not json"))
             );
 
-            assertThatThrownBy(() -> apiClient.getAllTransactionsForLastWeekForAccountAndDefaultCategory(account))
+            assertThatThrownBy(() -> apiClient.getAllTransactionsForAccountAndDefaultCategoryInInterval(account, interval))
                     .isInstanceOf(ApiException.class)
                     .hasMessage("Could not get accounts data from Transaction Feed API")
                     .hasCauseInstanceOf(JsonProcessingException.class);

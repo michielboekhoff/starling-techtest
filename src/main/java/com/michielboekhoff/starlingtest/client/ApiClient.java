@@ -19,7 +19,7 @@ public class ApiClient {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private static final String ACCOUNTS_API_PATH = "/api/v2/accounts";
-    private static final String TRANSACTIONS_FEED_API_PATH_FORMAT = "/api/v2/feed/account/%s/category/%s/transactions-between";
+    private static final String TRANSACTIONS_FEED_API_PATH_FORMAT = "/api/v2/feed/account/%s/category/%s/transactions-between?minTransactionTimestamp=%s&maxTransactionTimestamp=%s";
 
     private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
@@ -47,10 +47,11 @@ public class ApiClient {
         }
     }
 
-    public List<Transaction> getAllTransactionsForLastWeekForAccountAndDefaultCategory(Account account) {
+    public List<Transaction> getAllTransactionsForAccountAndDefaultCategoryInInterval(Account account,
+                                                                                      Interval interval) {
         HttpRequest request = HttpRequest.newBuilder()
                 .GET()
-                .uri(getFeedUrlForAccountUidAndCategoryUid(account.getAccountUid(), account.getDefaultCategory()))
+                .uri(getFeedUrlForAccountAndInterval(account, interval))
                 .header("Authorization", "Bearer " + accessToken)
                 .build();
 
@@ -63,11 +64,20 @@ public class ApiClient {
         }
     }
 
-    private URI getFeedUrlForAccountUidAndCategoryUid(String accountUid, String categoryUid) {
-        return resolveRelativeToBaseUrl(String.format(TRANSACTIONS_FEED_API_PATH_FORMAT, accountUid, categoryUid));
+    private URI getFeedUrlForAccountAndInterval(Account account, Interval interval) {
+        String uriString = String.format(
+                TRANSACTIONS_FEED_API_PATH_FORMAT,
+                account.getAccountUid(),
+                account.getDefaultCategory(),
+                interval.getBegin(),
+                interval.getEnd()
+        );
+
+        return resolveRelativeToBaseUrl(uriString);
     }
 
     private URI resolveRelativeToBaseUrl(String path) {
         return URI.create(baseUrl).resolve(path);
     }
+
 }
