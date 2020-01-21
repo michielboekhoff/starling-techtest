@@ -1,6 +1,7 @@
 package com.michielboekhoff.starlingtest.service;
 
 import com.michielboekhoff.starlingtest.domain.Transaction;
+import com.michielboekhoff.starlingtest.domain.Transaction.TransactionDirection;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -18,8 +19,8 @@ class RoundupServiceTest {
     @DisplayName("roundUp should calculate the amount to be saved")
     void roundUpShouldCalculateSavings() {
         List<Transaction> transactions = List.of(
-                new Transaction(new BigDecimal("1.88")),
-                new Transaction(new BigDecimal("5.27"))
+                new Transaction(new BigDecimal("1.88"), TransactionDirection.OUT),
+                new Transaction(new BigDecimal("5.27"), TransactionDirection.OUT)
         );
 
         BigDecimal savingAmount = roundupService.roundUp(transactions);
