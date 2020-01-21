@@ -56,13 +56,13 @@ class ApiClientTest {
         }
 
         @Test
-        @DisplayName("it should throw an IllegalStateException if the baseUrl cannot be parsed")
+        @DisplayName("it should throw an IllegalArgumentException if the baseUrl cannot be parsed")
         void invalidBaseUrl() {
             ApiClient apiClient = new ApiClient("foo", ACCESS_TOKEN);
 
             assertThatThrownBy(apiClient::getAllAccounts)
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessage("Base URL could not be parsed");
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("URI with undefined scheme");
         }
 
         @Test
