@@ -1,0 +1,83 @@
+{
+  "feedItems": [
+    {
+      "feedItemUid": "75d785cf-0095-41d0-bf12-b434f0425642",
+      "categoryUid": "e1b49313-eb7f-4f1f-808a-fcc729e8c01e",
+      "amount": {
+        "currency": "GBP",
+        "minorUnits": 2221
+      },
+      "sourceAmount": {
+        "currency": "GBP",
+        "minorUnits": 2221
+      },
+      "direction": "OUT",
+      "updatedAt": "2020-01-11T14:10:29.588Z",
+      "transactionTime": "2020-01-09T21:43:58.114Z",
+      "source": "MASTER_CARD",
+      "sourceSubType": "CHIP_AND_PIN",
+      "status": "PENDING",
+      "counterPartyType": "MERCHANT",
+      "counterPartyUid": "b309d641-0614-4e22-9f77-06ad45dbd760",
+      "counterPartyName": "MyPie",
+      "counterPartySubEntityUid": "9f9cabe9-2fc0-4a9c-bd4f-fe93f4ee9509",
+      "reference": "  fee5e037-ba63-4b00-8995-c0b696de5521GB",
+      "country": "GB",
+      "spendingCategory": "EATING_OUT"
+    },
+    {
+      "feedItemUid": "75d7dc80-2951-4b9b-bdf6-598a7e07954c",
+      "categoryUid": "e1b49313-eb7f-4f1f-808a-fcc729e8c01e",
+      "amount": {
+        "currency": "GBP",
+        "minorUnits": 3765
+      },
+      "sourceAmount": {
+        "currency": "GBP",
+        "minorUnits": 3765
+      },
+      "direction": "OUT",
+      "updatedAt": "2020-01-09T21:43:58.342Z",
+      "transactionTime": "2020-01-09T21:43:58.085Z",
+      "settlementTime": "2020-01-09T21:43:58.276Z",
+      "source": "FASTER_PAYMENTS_OUT",
+      "status": "SETTLED",
+      "counterPartyType": "PAYEE",
+      "counterPartyUid": "3b18a39b-8d46-49a3-add4-20fe73439fe8",
+      "counterPartyName": "Mickey Mouse",
+      "counterPartySubEntityUid": "d16a946d-b5db-4ca5-8324-cb7b2a46ea52",
+      "counterPartySubEntityName": "UK account",
+      "counterPartySubEntityIdentifier": "204514",
+      "counterPartySubEntitySubIdentifier": "00000825",
+      "reference": "External Payment",
+      "country": "GB",
+      "spendingCategory": "PAYMENTS"
+    },
+    {
+      "feedItemUid": "75d7b8ca-36c2-4f76-9887-8996924606c2",
+      "categoryUid": "e1b49313-eb7f-4f1f-808a-fcc729e8c01e",
+      "amount": {
+        "currency": "GBP",
+        "minorUnits": 60000
+      },
+      "sourceAmount": {
+        "currency": "GBP",
+        "minorUnits": 60000
+      },
+      "direction": "IN",
+      "updatedAt": "2020-01-09T21:43:14.721Z",
+      "transactionTime": "2020-01-09T21:43:14.000Z",
+      "settlementTime": "2020-01-09T21:43:14.000Z",
+      "source": "FASTER_PAYMENTS_IN",
+      "status": "SETTLED",
+      "counterPartyType": "SENDER",
+      "counterPartyName": "MR CUSTOMER",
+      "counterPartySubEntityName": "",
+      "counterPartySubEntityIdentifier": "203002",
+      "counterPartySubEntitySubIdentifier": "79155677",
+      "reference": "Test deposit",
+      "country": "GB",
+      "spendingCategory": "INCOME"
+    }
+  ]
+}

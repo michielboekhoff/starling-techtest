@@ -3,6 +3,7 @@ package com.michielboekhoff.starlingtest.client;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.michielboekhoff.starlingtest.domain.Account;
+import com.michielboekhoff.starlingtest.domain.Transaction;
 
 import java.io.IOException;
 import java.net.URI;
@@ -18,6 +19,8 @@ public class ApiClient {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private static final String ACCOUNTS_API_PATH = "/api/v2/accounts";
+    private static final String TRANSACTIONS_FEED_API_PATH_FORMAT = "/api/v2/feed/account/%s/category/%s/transactions-between";
+
     private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
     private final String baseUrl;
@@ -42,6 +45,26 @@ public class ApiClient {
         } catch (IOException | InterruptedException e) {
             throw new ApiException("Could not get accounts data from Accounts API", e);
         }
+    }
+
+    public List<Transaction> getAllTransactionsForLastWeekForAccountAndDefaultCategory(Account account) {
+        HttpRequest request = HttpRequest.newBuilder()
+                .GET()
+                .uri(getFeedUrlForAccountUidAndCategoryUid(account.getAccountUid(), account.getDefaultCategory()))
+                .header("Authorization", "Bearer " + accessToken)
+                .build();
+
+        try {
+            HttpResponse<String> response = HTTP_CLIENT.send(request, BodyHandlers.ofString());
+            FeedsWrapper feedsWrapper = objectMapper.readValue(response.body(), FeedsWrapper.class);
+            return feedsWrapper.getTransactions();
+        } catch (InterruptedException | IOException e) {
+            throw new ApiException("Could not get accounts data from Transaction Feed API", e);
+        }
+    }
+
+    private URI getFeedUrlForAccountUidAndCategoryUid(String accountUid, String categoryUid) {
+        return resolveRelativeToBaseUrl(String.format(TRANSACTIONS_FEED_API_PATH_FORMAT, accountUid, categoryUid));
     }
 
     private URI resolveRelativeToBaseUrl(String path) {
