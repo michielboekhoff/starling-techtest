@@ -1,0 +1,9 @@
+{
+  "transferUid": "88998899-8899-8899-8899-889988998899",
+  "success": true,
+  "errors": [
+    {
+      "message": "Something about the validation error"
+    }
+  ]
+}

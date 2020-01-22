@@ -37,6 +37,11 @@ class ApiClientTest {
         wireMock.stop();
     }
 
+    @BeforeEach
+    public void beforeEach() {
+        wireMock.resetAll();
+    }
+
     @Nested
     @DisplayName("getAllAccounts")
     class GetAllAccountsTests {
@@ -192,6 +197,69 @@ class ApiClientTest {
             assertThatThrownBy(() -> apiClient.getAllTransactionsForAccountAndDefaultCategoryInInterval(account, interval))
                     .isInstanceOf(ApiException.class)
                     .hasMessageMatching("Status code 404 returned by http://.*/api/v2/feed/account/accountUid/category/defaultCategory.*");
+        }
+    }
+
+    @Nested
+    @DisplayName("transferAmountToSavingsGoal")
+    class TransferAmountToSavingsGoalTest {
+
+        private final Account account = new Account("accountUid", "defaultCategory");
+
+        private final String savingsGoalUid = "savingsGoalUid";
+
+        private final BigDecimal transferAmount = new BigDecimal("1.00");
+
+        @DisplayName("it should call the transfer endpoint")
+        @Test
+        void callsTheTransferEndpoint() {
+            stubFor(
+                    put(urlPathMatching("^/api/v2/account/accountUid/savings-goals/savingsGoalUid/add-money/.*"))
+                            .willReturn(aResponse().withStatus(200).withBodyFile("savings_goal.json"))
+            );
+
+            apiClient.transferIntoSavingsGoalForAccount(account, savingsGoalUid, transferAmount);
+
+            verify(
+                    putRequestedFor(urlPathMatching("^/api/v2/account/accountUid/savings-goals/savingsGoalUid/add-money/[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}"))
+                            .withHeader("Authorization", equalTo("Bearer token"))
+                            .withHeader("Content-Type", equalTo("application/json"))
+                            .withRequestBody(matchingJsonPath("$.amount.currency", equalTo("GBP")))
+                            .withRequestBody(matchingJsonPath("$.amount.minorUnits", equalTo("100")))
+            );
+        }
+
+        @Test
+        @DisplayName("it should throw an ApiException when the HTTP status code is not successful")
+        void nonSuccessfulStatusCode() {
+            stubFor(put(urlPathMatching("^/api/v2/account/accountUid/savings-goals/savingsGoalUid/add-money/.*"))
+                    .willReturn(aResponse().withStatus(404)));
+
+            assertThatThrownBy(() -> apiClient.transferIntoSavingsGoalForAccount(account, savingsGoalUid, transferAmount))
+                    .isInstanceOf(ApiException.class)
+                    .hasMessageMatching("Status code 404 returned by http://.*/api/v2/account/accountUid/savings-goals/savingsGoalUid/add-money/.*");
+        }
+
+        @Test
+        @DisplayName("it should throw an IllegalArgumentException if the baseUrl cannot be parsed")
+        void invalidBaseUrl() {
+            ApiClient apiClient = new ApiClient("foo", ACCESS_TOKEN);
+
+            assertThatThrownBy(() -> apiClient.transferIntoSavingsGoalForAccount(account, savingsGoalUid, transferAmount))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("URI with undefined scheme");
+        }
+
+        @Test
+        @DisplayName("it should throw an ApiException when a connection cannot be established")
+        void cannotConnect() {
+            stubFor(put(urlPathMatching("^/api/v2/account/accountUid/savings-goals/savingsGoalUid/add-money/.*"))
+                    .willReturn(aResponse().withFault(Fault.RANDOM_DATA_THEN_CLOSE)));
+
+            assertThatThrownBy(() -> apiClient.transferIntoSavingsGoalForAccount(account, savingsGoalUid, transferAmount))
+                    .isInstanceOf(ApiException.class)
+                    .hasMessage("Could not transfer savings via Savings Goals API")
+                    .hasCauseInstanceOf(IOException.class);
         }
     }
 }
