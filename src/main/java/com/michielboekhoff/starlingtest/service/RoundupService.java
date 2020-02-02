@@ -7,6 +7,7 @@ import com.michielboekhoff.starlingtest.domain.Transaction;
 import com.michielboekhoff.starlingtest.domain.Transaction.TransactionDirection;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Clock;
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class RoundupService {
     }
 
     private BigDecimal getAmountToSave(BigDecimal transactionAmount) {
-        BigDecimal fractionalPart = transactionAmount.remainder(BigDecimal.ONE);
-        return BigDecimal.ONE.subtract(fractionalPart);
+        BigDecimal nextWholeNumber = transactionAmount.setScale(0, RoundingMode.CEILING);
+        return nextWholeNumber.subtract(transactionAmount);
     }
 }

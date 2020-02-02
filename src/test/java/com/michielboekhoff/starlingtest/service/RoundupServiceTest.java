@@ -27,7 +27,8 @@ class RoundupServiceTest {
     private final List<Transaction> transactions = List.of(
             new Transaction(new BigDecimal("4.35"), TransactionDirection.OUT),
             new Transaction(new BigDecimal("5.20"), TransactionDirection.OUT),
-            new Transaction(new BigDecimal("0.87"), TransactionDirection.OUT)
+            new Transaction(new BigDecimal("0.87"), TransactionDirection.OUT),
+            new Transaction(new BigDecimal("1.00"), TransactionDirection.OUT)
     );
 
     @Test
